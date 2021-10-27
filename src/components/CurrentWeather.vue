@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div class="currentWeather">
+    <div class="currentWeather" v-if="cityWeather">
       <div class="search-wrapper">
         <input v-model.lazy="searchBar" v-on:keyup.enter="searchCity()" class="search-input" placeholder="Enter City Name">
         <button class="search-button" v-on:click="searchCity()">
@@ -9,21 +9,21 @@
       </div>
       <div class="current-location-warpper">
         <div class="weather-icon-container">
-          <div v-if="clearSky.includes(icon)">
+          <div v-if="clearSky.includes(this.cityWeather['temp_icon'])">
             <div class="hot">
               <span class="sun"></span>
               <span class="sunx"></span>
             </div>
           </div>
 
-          <div v-if="cloudy.includes(icon)">
+          <div v-if="cloudy.includes(this.cityWeather['temp_icon'])">
             <div class="cloudy">
               <span class="cloud"></span>
               <span class="cloudx"></span>
             </div>
           </div>
 
-          <div v-if="snow.includes(icon)">
+          <div v-if="snow.includes(this.cityWeather['temp_icon'])">
             <div class="stormy">
               <ul>
               <li></li>
@@ -42,7 +42,7 @@
             </div>
           </div>
           
-          <div v-if="rain.includes(icon)">
+          <div v-if="rain.includes(this.cityWeather['temp_icon'])">
             <div class="breezy">
               <ul>
 
@@ -56,7 +56,7 @@
             </div>
           </div>
 
-          <div v-if="night.includes(icon)">
+          <div v-if="night.includes(this.cityWeather['temp_icon'])">
             <div class="night">
             <span class="moon"></span>
             <span class="spot1"></span>
@@ -74,22 +74,22 @@
         </div>
       </div>
       <div class="location-warpper">
-        <h1 class="city-name">{{ this.weather['name'] }}<span>, {{ this.allWeather['timezone'] }}</span></h1>
-        <p class="current-timestamp">As on {{ localTime(this.weather['dt']) }} &nbsp;<span v-on:click="getCity()"><i class="fa fa-redo"></i></span></p>
+        <h1 class="city-name">{{ this.cityWeather['city_name'] }}<span>, {{ this.cityWeather['timezone'] }}</span></h1>
+        <p class="current-timestamp">As on {{ this.cityWeather['current_date'] }} &nbsp;<span v-on:click="getCity()"><i class="fa fa-redo"></i></span></p>
       </div>
       <div class="temp-wrapper">
-        <h1 class="temp">{{ tempToFahr(this.allWeather['current']['temp']) }}°</h1>
-        <p class="temp-desc">{{ this.allWeather['current']['weather'][0]['main'] }}</p>
-        <p class="feels"> {{ this.weather['name'] }} Feels like : {{ tempToFahr(this.allWeather['current']['temp']) }}°</p>
+        <h1 class="temp">{{ this.cityWeather['current_temp'] }}°</h1>
+        <p class="temp-desc">{{ this.cityWeather['desc'] }}</p>
+        <p class="feels"> {{ this.cityWeather['city_name'] }} Feels like : {{ this.cityWeather['temp_f'] }}°</p>
       </div>
       <div class="additional-info-wrapper">
-        <p class="sunriseTime"><i class="wi wi-sunrise"></i><span>{{ localTimeHour(this.allWeather['current']['sunrise']) }}</span></p>
-        <p class="sunsetTime"><i class="wi wi-sunset"></i><span>{{ localTimeHour(this.allWeather['current']['sunset']) }}</span></p>
-        <p class="celsius"><i class="wi wi-thermometer"></i><span>{{ tempToCel(this.allWeather['current']['temp']) }}</span><i class="wi wi-celsius"></i></p>
-        <p class="fahrenheit"><i class="wi wi-thermometer"></i><span>{{ tempToFahr(this.allWeather['current']['temp']) }}</span><i class="wi wi-fahrenheit"></i></p>
+        <p class="sunriseTime"><i class="wi wi-sunrise"></i><span>{{ this.cityWeather['sunrise'] }}</span></p>
+        <p class="sunsetTime"><i class="wi wi-sunset"></i><span>{{ this.cityWeather['sunset'] }}</span></p>
+        <p class="celsius"><i class="wi wi-thermometer"></i><span>{{ this.cityWeather['temp_c'] }}</span><i class="wi wi-celsius"></i></p>
+        <p class="fahrenheit"><i class="wi wi-thermometer"></i><span>{{ this.cityWeather['temp_f'] }}</span><i class="wi wi-fahrenheit"></i></p>
       </div>
     </div>
-    <div class="currentStats">
+    <div class="currentStats"  v-if="cityWeather">
       <div class="stats-container">
         <p class="title">Today's Highlight</p>
         <div class="stats-wrapper">
@@ -98,41 +98,41 @@
               <tr>
                 <td><i class="wi wi-thermometer"></i></td>
                 <td id='metric'>High</td>
-                <td id='value'>{{ tempToFahr(this.weather['main']['temp_max']) }}°</td>
+                <td id='value'>{{ this.cityWeather['temp_max'] }}°</td>
                 <td><i class="wi wi-thermometer"></i></td>
                 <td id='metric'>Low</td>
-                <td id='value'>{{ tempToFahr(this.weather['main']['temp_min']) }}°</td>
+                <td id='value'>{{ this.cityWeather['temp_min'] }}°</td>
               </tr>
               <tr>
                 <td><i class="wi wi-humidity"></i></td>
                 <td id='metric'>Humidity</td>
-                <td id='value'>{{ this.weather['main']['humidity'] }} %</td>
+                <td id='value'>{{ this.cityWeather['humidity'] }} %</td>
                 <td><i class="wi wi-dust"></i></td>
                 <td id='metric'>Visibility</td>
-                <td id='value'>{{ this.weather['visibility']/1000 }} km</td>
+                <td id='value'>{{ this.cityWeather['visibility']/1000 }} km</td>
               </tr>
               <tr>
                 <td><i class="wi wi-horizon-alt"></i></td>
                 <td id='metric'>UV Index</td>
-                <td id='value'>{{ this.allWeather['current']['uvi'] }}</td>
+                <td id='value'>{{ this.cityWeather['uvi'] }}</td>
                 <td><i class="wi wi-strong-wind"></i></td>
                 <td id='metric'>Wind Speed</td>
-                <td id='value'>{{ this.allWeather['current']['wind_speed'] }} km/h</td>
+                <td id='value'>{{ this.cityWeather['wind_speed'] }} km/h</td>
               </tr>
               <tr>
                 <td><i class="wi wi-barometer"></i></td>
                 <td id='metric'>Pressure</td>
-                <td id='value'>{{ this.allWeather['current']['pressure'] }}</td>
+                <td id='value'>{{ this.cityWeather['pressure'] }}</td>
                 <td><i class="wi wi-raindrops"></i></td>
                 <td id='metric'>Dew Point</td>
-                <td id='value'>{{ this.allWeather['current']['dew_point'] }}</td>
+                <td id='value'>{{ this.cityWeather['dew_point'] }}</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
-    <div class="allWeather">
+    <div class="allWeather"  v-if="cityWeather">
       <div class="tab-container">
         <button id="hourly" @click="displayHourly()">Hourly</button>
         <span>|</span>
@@ -141,48 +141,48 @@
       <div class="hourly-container" v-bind:style="{ display: this.tab1Display }">
         <ul class="list">
           <li class="list-item active">
-              <div class="icon"><img id="wicon" :src="getIconUrl(this.allWeather['hourly'][0]['weather'][0]['icon'])" alt="Weather icon"></div>
-              <div class="metric">{{ localTimeHour(this.allWeather['hourly'][0]['dt']) }}</div>
-              <div class="temp-new">{{ tempToFahr(this.allWeather['hourly'][0]['temp']) }}°</div>
+              <div class="icon"><img id="wicon" :src="this.cityWeather['hourly_icon_0']" alt="Weather icon"></div>
+              <div class="metric">{{ this.cityWeather['hourly_time_0'] }}</div>
+              <div class="temp-new">{{ this.cityWeather['hourly_temp_0'] }}°</div>
           </li>
           <li class="list-item">
-              <div class="icon"><img id="wicon" :src="getIconUrl(this.allWeather['hourly'][1]['weather'][0]['icon'])" alt="Weather icon"></div>
-              <div class="metric">{{ localTimeHour(this.allWeather['hourly'][1]['dt']) }}</div>
-              <div class="temp-new">{{ tempToFahr(this.allWeather['hourly'][1]['temp']) }}°</div>
+              <div class="icon"><img id="wicon" :src="this.cityWeather['hourly_icon_1']" alt="Weather icon"></div>
+              <div class="metric">{{ this.cityWeather['hourly_time_1'] }}</div>
+              <div class="temp-new">{{ this.cityWeather['hourly_temp_1'] }}°</div>
           </li>
           <li class="list-item">
-              <div class="icon"><img id="wicon" :src="getIconUrl(this.allWeather['hourly'][2]['weather'][0]['icon'])" alt="Weather icon"></div>
-              <div class="metric">{{ localTimeHour(this.allWeather['hourly'][2]['dt']) }}</div>
-              <div class="temp-new">{{ tempToFahr(this.allWeather['hourly'][2]['temp']) }}°</div>
+              <div class="icon"><img id="wicon" :src="this.cityWeather['hourly_icon_2']" alt="Weather icon"></div>
+              <div class="metric">{{ this.cityWeather['hourly_time_2'] }}</div>
+              <div class="temp-new">{{ this.cityWeather['hourly_temp_2'] }}°</div>
           </li>
           <li class="list-item">
-              <div class="icon"><img id="wicon" :src="getIconUrl(this.allWeather['hourly'][3]['weather'][0]['icon'])" alt="Weather icon"></div>
-              <div class="metric">{{ localTimeHour(this.allWeather['hourly'][3]['dt']) }}</div>
-              <div class="temp-new">{{ tempToFahr(this.allWeather['hourly'][3]['temp']) }}°</div>
+              <div class="icon"><img id="wicon" :src="this.cityWeather['hourly_icon_3']" alt="Weather icon"></div>
+              <div class="metric">{{ this.cityWeather['hourly_time_3'] }}</div>
+              <div class="temp-new">{{ this.cityWeather['hourly_temp_3'] }}°</div>
           </li>
         </ul>
       </div>
       <div class="daily-container" v-bind:style="{ display: this.tab2Display }">
         <ul class="list">
           <li class="list-item active">
-              <div class="icon"><img id="wicon" :src="getIconUrl(this.allWeather['daily'][0]['weather'][0]['icon'])" alt="Weather icon"></div>
-              <div class="metric">{{ localTimeWeek(this.allWeather['daily'][0]['dt']) }}</div>
-              <div class="temp-new">{{ tempToFahr(this.allWeather['daily'][0]['temp']['day']) }}°</div>
+              <div class="icon"><img id="wicon" :src="this.cityWeather['daily_icon_0']" alt="Weather icon"></div>
+              <div class="metric">{{ this.cityWeather['daily_day_0'] }}</div>
+              <div class="temp-new">{{ this.cityWeather['daily_temp_0'] }}°</div>
           </li>
           <li class="list-item">
-              <div class="icon"><img id="wicon" :src="getIconUrl(this.allWeather['daily'][1]['weather'][0]['icon'])" alt="Weather icon"></div>
-              <div class="metric">{{ localTimeWeek(this.allWeather['daily'][1]['dt']) }}</div>
-              <div class="temp-new">{{ tempToFahr(this.allWeather['daily'][1]['temp']['day']) }}°</div>
+              <div class="icon"><img id="wicon" :src="this.cityWeather['daily_icon_1']" alt="Weather icon"></div>
+              <div class="metric">{{ this.cityWeather['daily_day_1'] }}</div>
+              <div class="temp-new">{{ this.cityWeather['daily_temp_1'] }}°</div>
           </li>
           <li class="list-item">
-              <div class="icon"><img id="wicon" :src="getIconUrl(this.allWeather['daily'][2]['weather'][0]['icon'])" alt="Weather icon"></div>
-              <div class="metric">{{ localTimeWeek(this.allWeather['daily'][2]['dt']) }}</div>
-              <div class="temp-new">{{ tempToFahr(this.allWeather['daily'][2]['temp']['day']) }}°</div>
+              <div class="icon"><img id="wicon" :src="this.cityWeather['daily_icon_2']" alt="Weather icon"></div>
+              <div class="metric">{{ this.cityWeather['daily_day_2'] }}</div>
+              <div class="temp-new">{{ this.cityWeather['daily_temp_2'] }}°</div>
           </li>
           <li class="list-item">
-              <div class="icon"><img id="wicon" :src="getIconUrl(this.allWeather['daily'][3]['weather'][0]['icon'])" alt="Weather icon"></div>
-              <div class="metric">{{ localTimeWeek(this.allWeather['daily'][3]['dt']) }}</div>
-              <div class="temp-new">{{ tempToFahr(this.allWeather['daily'][3]['temp']['day']) }}°</div>
+              <div class="icon"><img id="wicon" :src="this.cityWeather['daily_icon_3']" alt="Weather icon"></div>
+              <div class="metric">{{ this.cityWeather['daily_day_3'] }}</div>
+              <div class="temp-new">{{ this.cityWeather['daily_temp_3'] }}°</div>
           </li>
         </ul>
       </div>
@@ -207,19 +207,18 @@ export default {
       longitude: 0,
       // Open Weather
       apiKey: 'open-weather-map-api',
-      weather: [],
-      allWeather: [],
+      weather: {},
+      allWeather: {},
+      cityWeather: null,
       timestamp: null,
       temperature: null,
       tab1Display:'block',
       tab2Display:'none',
-      icon: null,
       clearSky: ['01d', '01n', '50d', '50n'],
       cloudy: ['02d', '02n', '03d', '03n', '04d', '04n'],
       snow: ['13d', '13n'],
       rain: ['10d', '10n', '09d', '09n', '11d', '11n'],
       night: [],
-      iconUrl: null,
     }
   },
   created() {
@@ -235,9 +234,11 @@ export default {
         this.getCity()
       }, err => {
         this.errorStr = err.message;
-      },  {timeout: 10000})
+      })
+      return this.location
     } else {
       this.getCity()
+      return this.latitude
     }
   },
   methods: {
@@ -260,6 +261,7 @@ export default {
         this.$cookies.set('latitude',0),
         this.$cookies.set('longitude',0)
         ))
+      return this.weather
     },
     async getCity() {
       // Get City Name
@@ -271,15 +273,49 @@ export default {
         this.getWeather()
         ))
       .catch(error => (alert('City Not Found'), console.log(error)))
+      return this.weather
     },
     async getWeather() {
       // Get City Weather
-      await axios.get('https://api.openweathermap.org/data/2.5/onecall?lon=' + this.longitude + '&lat=' + this.latitude + '&appid=' + this.apiKey)
+      await axios.get('https://api.openweathermap.org/data/2.5/onecall?lon=' + this.longitude + '&lat=' + this.latitude + '&exclude=minutely,alert&appid=' + this.apiKey)
       .then(response => (
         this.allWeather = response.data,
-        this.icon = this.allWeather['current']['weather'][0]['icon']
+        this.compileWeather(this.weather, this.allWeather),
+        this.compileDetailedWeather(this.allWeather)
         ))
       .catch(error => (alert('Something went wrong with the API'), console.log(error)))
+      return this.allWeather
+    },
+    compileWeather(weather, allWeather) {
+      this.cityWeather = {}
+      this.cityWeather.city_name = weather['name'];
+      this.cityWeather.timezone = allWeather['timezone'];
+      this.cityWeather.current_date = this.localTime(weather['dt']);
+      this.cityWeather.current_temp = this.tempToFahr(allWeather['current']['temp']);
+      this.cityWeather.desc = allWeather['current']['weather'][0]['main'];
+      this.cityWeather.temp_icon = weather['weather'][0]['icon'];
+      this.cityWeather.temp_f = this.tempToFahr(allWeather['current']['temp']);
+      this.cityWeather.temp_c = this.tempToCel(allWeather['current']['temp']);
+      this.cityWeather.sunrise = this.localTimeHour(allWeather['current']['sunrise']);
+      this.cityWeather.sunset = this.localTimeHour(allWeather['current']['sunrise']);
+      this.cityWeather.temp_max = this.tempToFahr(weather['main']['temp_max']);
+      this.cityWeather.temp_min = this.tempToFahr(weather['main']['temp_min']);
+      this.cityWeather.humidity = weather['main']['humidity'];
+      this.cityWeather.visibility = weather['visibility'];
+      this.cityWeather.uvi = allWeather['current']['uvi'];
+      this.cityWeather.wind_speed = allWeather['current']['wind_speed'];
+      this.cityWeather.pressure = allWeather['current']['pressure'];
+      this.cityWeather.dew_point = allWeather['current']['dew_point'];
+    },
+    compileDetailedWeather(allWeather) {
+      for (let i = 0 ; i <= 3; i++) {
+        this.cityWeather["hourly_icon_" + i] = this.getIconUrl(allWeather['hourly'][i]['weather'][0]['icon']);
+        this.cityWeather["hourly_time_" + i] = this.localTimeHour(allWeather['hourly'][i]['dt']);
+        this.cityWeather["hourly_temp_" + i] = this.tempToFahr(allWeather['hourly'][i]['temp']);
+        this.cityWeather["daily_icon_" + i] = this.getIconUrl(allWeather['daily'][i]['weather'][0]['icon']);
+        this.cityWeather["daily_day_" + i] = this.localTimeWeek(allWeather['daily'][i]['dt']);
+        this.cityWeather["daily_temp_" + i] = this.tempToFahr(allWeather['daily'][i]['temp']['day']);
+      }
     },
     localTime(timestamp) {
       this.timestamp = Date(timestamp)
